@@ -48,6 +48,7 @@ export default function Login() {
           <button type="submit" className="btn-primary">Log in</button>
         </form>
         <p className="auth-swap">No account? <Link to="/signup">Sign up</Link></p>
+        <p className="auth-dashboard-hint">After signing in, view your appointments and discounts in your dashboard.</p>
       </div>
     </main>
   );

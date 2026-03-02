@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CalendarCheck } from 'lucide-react';
-import { SERVICE_OPTIONS } from '../constants/services';
+import { SERVICE_OPTIONS, ADD_ON_OPTIONS } from '../constants/services';
 
 export default function Book() {
   const { user, addAppointment } = useAuth();
   const navigate = useNavigate();
-  const [service, setService] = useState('exterior');
+  const [service, setService] = useState('regular');
+  const [addOdorRemoval, setAddOdorRemoval] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
   const [address, setAddress] = useState('');
@@ -15,7 +16,8 @@ export default function Book() {
   const [booked, setBooked] = useState(false);
 
   const selected = SERVICE_OPTIONS.find(o => o.id === service);
-  const price = selected?.price ?? 60;
+  const odorAddOn = ADD_ON_OPTIONS.find(o => o.id === 'odor_removal');
+  const price = (selected?.price ?? 60) + (addOdorRemoval && odorAddOn ? odorAddOn.price : 0);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export default function Book() {
       return;
     }
     addAppointment({
-      service: selected?.label ?? 'Exterior',
+      service: (selected?.label ?? 'Regular package') + (addOdorRemoval ? ' + Odor removal' : ''),
       price,
       date,
       time,
@@ -58,7 +60,7 @@ export default function Book() {
           </p>
         )}
         <form onSubmit={handleSubmit}>
-          <label className="service-label">Service</label>
+          <label className="service-label">Package</label>
           <div className="service-options">
             {SERVICE_OPTIONS.map((opt) => {
               const Icon = opt.Icon;
@@ -73,6 +75,24 @@ export default function Book() {
                   <span>{opt.label}</span>
                   <span className="opt-price">${opt.price}</span>
                 </button>
+              );
+            })}
+          </div>
+          <div className="service-addons">
+            <p className="service-addons-title">Add-ons</p>
+            {ADD_ON_OPTIONS.map((addon) => {
+              const Icon = addon.Icon;
+              const isChecked = addon.id === 'odor_removal' && addOdorRemoval;
+              return (
+                <label key={addon.id} className={`service-addon-opt ${isChecked ? 'active' : ''}`}>
+                  <input type="checkbox" checked={isChecked} onChange={(e) => setAddOdorRemoval(e.target.checked)} className="service-addon-input" />
+                  <span className="service-addon-icon" aria-hidden><Icon size={22} strokeWidth={1.75} /></span>
+                  <span className="service-addon-content">
+                    <span className="service-addon-label-text">{addon.label}</span>
+                    {addon.description && <span className="service-addon-desc">{addon.description}</span>}
+                    <span className="service-addon-price">+${addon.price}</span>
+                  </span>
+                </label>
               );
             })}
           </div>

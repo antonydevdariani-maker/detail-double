@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Menu, X, Home, Wrench, Calendar, Shield, LayoutDashboard, LogIn, UserPlus, LogOut } from 'lucide-react';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isDashboard = user && location.pathname.startsWith('/dashboard');
 
   const handleLogout = () => {
     logout();
@@ -17,7 +20,7 @@ export default function Header() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="header">
+    <header className={`header ${isDashboard ? 'header--dashboard' : ''}`}>
       <Link to="/" className="logo">
         <img src="/logo.png" alt="Double A Details — Mobile Car Detailing" className="logo-img" />
       </Link>
@@ -34,21 +37,23 @@ export default function Header() {
         <Link to="/" onClick={closeMenu}>
           <Home size={18} aria-hidden /> Home
         </Link>
-        <Link to="/#services" onClick={closeMenu}>
-          <Wrench size={18} aria-hidden /> Services
-        </Link>
-        <Link to="/#book" onClick={closeMenu}>
-          <Calendar size={18} aria-hidden /> Book
-        </Link>
-        <Link to="/admin" onClick={closeMenu}>
-          <Shield size={18} aria-hidden /> Admin
-        </Link>
+        <div className={`header-nav-slide ${isDashboard ? 'header-nav-slide--collapsed' : ''}`} aria-hidden={isDashboard}>
+          <Link to="/#services" onClick={closeMenu}>
+            <Wrench size={18} aria-hidden /> Services
+          </Link>
+          <Link to="/#book" onClick={closeMenu}>
+            <Calendar size={18} aria-hidden /> Book
+          </Link>
+          <Link to="/admin" onClick={closeMenu}>
+            <Shield size={18} aria-hidden /> Admin
+          </Link>
+          {user && <span className="user-name">{user.name}</span>}
+        </div>
         {user ? (
           <>
             <Link to="/dashboard" onClick={closeMenu}>
               <LayoutDashboard size={18} aria-hidden /> Dashboard
             </Link>
-            <span className="user-name">{user.name}</span>
             <button type="button" className="btn-ghost" onClick={handleLogout}>
               <LogOut size={18} aria-hidden /> Log out
             </button>

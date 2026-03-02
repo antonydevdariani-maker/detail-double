@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Clock, Plus, XCircle } from 'lucide-react';
 import { addBlockedSlotToBackend, removeBlockedSlotFromBackend } from '../../lib/supabase';
 
-const SLOT_HOURS = ['14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+const SLOT_HOURS = ['15:30', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
 function getMinDate() {
   return new Date().toISOString().slice(0, 10);
@@ -11,10 +11,13 @@ function getMinDate() {
 
 function formatSlotTime(timeStr) {
   if (!timeStr) return '';
-  const [h] = timeStr.split(':').map(Number);
+  const parts = timeStr.split(':').map(Number);
+  const h = parts[0] ?? 0;
+  const m = parts[1] ?? 0;
   const period = h >= 12 ? 'PM' : 'AM';
   const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
-  return `${hour}:00 ${period}`;
+  const min = m ? String(m).padStart(2, '0') : '00';
+  return `${hour}:${min} ${period}`;
 }
 
 function formatSlotDate(dateStr) {
@@ -27,7 +30,7 @@ function formatSlotDate(dateStr) {
 export default function AdminAvailability() {
   const { blockedSlots, refetchBlockedSlots } = useOutletContext();
   const [date, setDate] = useState('');
-  const [time, setTime] = useState('14:00');
+  const [time, setTime] = useState('15:30');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState('');
 
@@ -44,7 +47,7 @@ export default function AdminAvailability() {
     if (id) {
       await refetchBlockedSlots();
       setDate('');
-      setTime('14:00');
+      setTime('15:30');
     } else {
       setError('Could not block that slot. Try again.');
     }

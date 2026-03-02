@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Mulish:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 :root {
   /* Logo-exact palette: jet black, pure white, silver gray, monochrome premium */
@@ -48,6 +49,7 @@
   --radius-lg: 12px;
   --font: 'DM Sans', system-ui, sans-serif;
   --font-display: 'Libre Baskerville', Georgia, serif;
+  --font-brand: 'Mulish', var(--font);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-btn: 0 2px 12px rgba(0, 0, 0, 0.5);
   --shadow-btn-hover: 0 4px 20px rgba(255, 255, 255, 0.08);
@@ -114,6 +116,25 @@ body {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+}
+
+/* Sliding middle section (Services, Book, Admin, name) — collapses on dashboard */
+.header-nav-slide {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 420px;
+  overflow: hidden;
+  opacity: 1;
+  white-space: nowrap;
+  transition: max-width 0.4s ease, opacity 0.3s ease;
+}
+
+.header-nav-slide--collapsed {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  margin-right: -1.25rem;
 }
 
 .header nav a {
@@ -264,6 +285,30 @@ body {
   .header nav .btn-ghost {
     border-bottom: none;
   }
+
+  .header-nav-slide {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: none;
+    max-height: 500px;
+    transition: max-width 0.4s ease, max-height 0.35s ease, opacity 0.3s ease;
+  }
+
+  .header-nav-slide--collapsed {
+    max-width: none;
+    max-height: 0;
+    opacity: 0;
+    margin-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+
+  .header-nav-slide a,
+  .header-nav-slide .user-name {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
 }
 
 /* Page layout */
@@ -285,6 +330,16 @@ body {
 .hero {
   text-align: center;
   padding: 3rem 0 2.5rem;
+}
+
+.hero-name {
+  font-family: var(--font-brand);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
 }
 
 @media (max-width: 480px) {
@@ -370,6 +425,8 @@ body {
 
 .home-book-card {
   margin: 0 auto;
+  width: 100%;
+  max-width: 420px;
 }
 
 .home-book-card h2 {
@@ -418,11 +475,34 @@ body {
   margin-bottom: 1rem;
 }
 
+.why-grid--three {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .why-grid--three {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .why-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+}
+
+.why-below-book {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.why-below-book .why-grid {
+  margin-bottom: 0;
 }
 
 .why-item {
@@ -466,29 +546,30 @@ body {
 }
 
 .services {
-  padding: 2.5rem 0;
+  padding: 2rem 0;
   border-top: 1px solid var(--border);
 }
 
 .services h2 {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1rem;
   letter-spacing: -0.02em;
 }
 
 .service-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .service-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  border-radius: var(--radius);
+  padding: 0.9rem;
+  text-align: center;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
@@ -499,37 +580,71 @@ body {
 }
 
 .service-card .icon-wrap {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius);
   background: var(--accent-light);
   color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  margin: 0 auto 0.5rem;
 }
 
 .service-name {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9rem;
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .service-price {
-  font-size: 1.25rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   color: var(--accent);
 }
 
 .service-desc {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.35;
+}
+
+@media (max-width: 480px) {
+  .services {
+    padding: 1.5rem 0;
+  }
+  .services h2 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .service-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .service-card {
+    padding: 0.6rem 0.4rem;
+  }
+  .service-card .icon-wrap {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 0.35rem;
+  }
+  .service-name {
+    font-size: 0.8rem;
+  }
+  .service-price {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+  .service-desc {
+    font-size: 0.7rem;
+  }
 }
 
 .services-cta {
@@ -665,6 +780,12 @@ body {
   color: var(--accent-hover);
 }
 
+.auth-dashboard-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0.75rem 0 0;
+}
+
 /* Book page */
 .service-label {
   margin-bottom: 0.5rem !important;
@@ -676,25 +797,6 @@ body {
   margin-bottom: 1.25rem;
 }
 
-@media (max-width: 480px) {
-  .service-options {
-    gap: 0.4rem;
-    margin-bottom: 1rem;
-  }
-  .service-opt {
-    padding: 0.6rem 0.4rem;
-    min-height: auto;
-    gap: 0.25rem;
-    font-size: 0.8rem;
-  }
-  .service-opt svg {
-    width: 18px;
-    height: 18px;
-  }
-  .opt-price {
-    font-size: 0.85rem;
-  }
-}
 
 .service-opt {
   flex: 1;
@@ -732,6 +834,120 @@ body {
   font-size: 1rem;
 }
 
+.service-opt-desc {
+  font-size: 0.7rem;
+  font-weight: 400;
+  opacity: 0.85;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 0.15rem;
+}
+
+.service-addons {
+  margin-bottom: 1.25rem;
+}
+
+.service-addons-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.service-addon-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+
+.service-addon-opt:last-child {
+  margin-bottom: 0;
+}
+
+.service-addon-opt:hover {
+  border-color: var(--text-muted);
+  background: var(--surface-elevated);
+}
+
+.service-addon-opt.active {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.service-addon-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.service-addon-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.2s, background 0.2s;
+}
+
+.service-addon-opt.active .service-addon-icon {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--bg);
+}
+
+.service-addon-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.service-addon-label-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.service-addon-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.service-addon-price {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 0.15rem;
+}
+
+.service-addon-opt.active .service-addon-label-text,
+.service-addon-opt.active .service-addon-desc,
+.service-addon-opt.active .service-addon-price {
+  color: var(--bg);
+}
+
+.service-addon-opt.active .service-addon-desc {
+  opacity: 0.85;
+}
+
 .book-time-label {
   margin-bottom: 0.35rem;
 }
@@ -756,6 +972,7 @@ body {
   margin-bottom: 0.75rem;
   animation: book-time-wrap-in 0.4s ease-out forwards;
 }
+
 
 @keyframes book-time-wrap-in {
   from {
@@ -849,6 +1066,54 @@ body {
   line-height: 1.4;
 }
 
+.book-discount-apply {
+  margin-bottom: 1rem;
+}
+
+.book-discount-apply-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.book-discount-apply-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+
+.book-discount-apply-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.book-discount-apply-btn:hover {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+
+.book-discount-apply-btn.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.book-total-discount {
+  font-weight: 500;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
 .book-total {
   font-weight: 600;
   margin: 0 0 1rem;
@@ -881,10 +1146,59 @@ body {
   gap: 0.5rem;
 }
 
+.dashboard-header {
+  margin-bottom: 1rem;
+}
+
 .dashboard-greeting {
   color: var(--text-muted);
   font-size: 0.95rem;
-  margin: 0 0 2rem;
+  margin: 0.25rem 0 0;
+}
+
+.dashboard-nav {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.dashboard-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.dashboard-nav-link:hover {
+  color: var(--text);
+}
+
+.dashboard-nav-link.active {
+  color: var(--accent);
+  font-weight: 500;
+  border-bottom-color: var(--accent);
+}
+
+.dashboard-outlet {
+  padding-bottom: 2rem;
+}
+
+.dashboard-content {
+  width: 100%;
 }
 
 .empty-state {
@@ -972,6 +1286,236 @@ body {
 .dashboard-book:hover {
   text-decoration: underline;
   transform: translateY(-1px);
+}
+
+.dashboard-section {
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard-book-section .book-card,
+.dashboard-book-section .confirm-card {
+  max-width: 100%;
+}
+
+.dashboard-confirm {
+  padding: 1.5rem;
+}
+
+.dashboard-hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.dashboard-hint-link {
+  color: #fff;
+}
+.dashboard-hint-link:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dashboard-loading {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.dashboard-discounts-empty {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.dashboard-discounts-empty p {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.dashboard-discounts-empty .dashboard-hint {
+  margin-top: 0.5rem;
+}
+
+.dashboard-coupons-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-coupon-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.dashboard-coupon-value {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.dashboard-coupon-service {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.dashboard-coupon-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-coupon-badge {
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dashboard-coupon-badge--unlocked {
+  color: var(--accent);
+}
+
+.dashboard-coupon-badge--locked {
+  color: var(--text-muted);
+}
+
+.dashboard-coupon-card--locked {
+  opacity: 0.9;
+  border-color: var(--border);
+}
+
+.dashboard-coupon-card--unlocked {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.dashboard-coupon-progress {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+}
+
+.dashboard-discounts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-discounts-refresh {
+  font-size: 0.9rem;
+}
+
+.dashboard-discounts-refresh .spin {
+  animation: spin 0.8s linear infinite;
+}
+
+.dashboard-discounts-error {
+  padding: 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+}
+
+.dashboard-discounts-error p {
+  margin: 0 0 0.75rem;
+  color: #b91c1c;
+  font-size: 0.95rem;
+}
+
+.dashboard-past-appointments {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.appointment-list--past {
+  margin-bottom: 0;
+}
+
+.appointment-card--past {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 1rem;
+  align-items: start;
+}
+
+.appointment-card--past .appt-main,
+.appointment-card--past .appt-details {
+  grid-column: 2;
+}
+
+.appointment-card-check {
+  grid-row: 1 / -1;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.appointment-card--past .appt-details {
+  flex: 1 1 100%;
+}
+
+.dashboard-discounts-section {
+  margin-bottom: 2rem;
+}
+
+.dashboard-discounts-section:last-child {
+  margin-bottom: 0;
+}
+
+.dashboard-discounts-subtitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+}
+
+.dashboard-discounts-empty-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0.75rem 0;
+}
+
+.dashboard-coupon-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.dashboard-coupon-used {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: auto;
 }
 
 /* Admin page */
@@ -1180,6 +1724,161 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   min-width: 140px;
+}
+
+.admin-add-appointment-section {
+  max-width: 40rem;
+  width: 100%;
+}
+
+.admin-add-appointment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-add-appointment-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.5rem;
+  align-items: start;
+}
+
+.admin-add-appointment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 0;
+}
+
+.admin-add-appointment-field:nth-child(12) {
+  grid-column: 1 / -1;
+}
+
+.admin-add-appointment-addon {
+  flex-direction: row;
+  align-items: center;
+  min-height: auto;
+  padding-top: 0.5rem;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.admin-addon-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  background: var(--surface-elevated);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.admin-add-appointment-addon input[type="checkbox"] {
+  width: 1.1rem;
+  min-height: 1.1rem;
+  margin-right: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.admin-add-appointment-form .admin-add-appointment-fields input,
+.admin-add-appointment-form .admin-add-appointment-fields select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: var(--surface-elevated);
+  color: var(--text);
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.admin-add-appointment-form .admin-add-appointment-fields input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.admin-add-appointment-form .admin-add-appointment-fields input:focus,
+.admin-add-appointment-form .admin-add-appointment-fields select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.admin-add-appointment-form .admin-add-appointment-fields select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.admin-add-appointment-form .btn-primary {
+  align-self: flex-start;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .admin-add-appointment-form {
+    padding: 1.25rem;
+  }
+
+  .admin-add-appointment-fields {
+    gap: 1rem 1.25rem;
+  }
+
+  .admin-add-appointment-field:nth-child(1),
+  .admin-add-appointment-field:nth-child(2),
+  .admin-add-appointment-field:nth-child(8),
+  .admin-add-appointment-field:nth-child(11) {
+    grid-column: 1 / -1;
+  }
+
+  .admin-add-appointment-form .admin-add-appointment-fields input,
+  .admin-add-appointment-form .admin-add-appointment-fields select {
+    min-height: 2.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .admin-add-appointment-form .btn-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-add-appointment-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-add-appointment-field:nth-child(1),
+  .admin-add-appointment-field:nth-child(2),
+  .admin-add-appointment-field:nth-child(8),
+  .admin-add-appointment-field:nth-child(11),
+  .admin-add-appointment-field:nth-child(12) {
+    grid-column: 1;
+  }
+}
+
+.admin-add-appointment-success {
+  color: var(--accent);
+  font-size: 0.95rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(5, 150, 105, 0.12);
+  border-radius: var(--radius);
+  border: 1px solid rgba(5, 150, 105, 0.3);
 }
 
 .admin-blocked-list {
@@ -1437,6 +2136,130 @@ body {
   grid-template-columns: 1fr 1.2fr 0.9fr auto auto;
 }
 
+/* Admin coupons */
+.admin-coupons-customer-header {
+  grid-template-columns: 1.5fr 1fr 1fr 80px;
+}
+
+.admin-coupons-customer-row {
+  grid-template-columns: 1.5fr 1fr 1fr 80px;
+}
+
+.admin-coupons-email-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-coupons-email-btn:hover {
+  text-decoration: underline;
+}
+
+.admin-coupons-form {
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-coupons-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.admin-coupons-form input,
+.admin-coupons-form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.admin-coupons-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.admin-coupons-success {
+  color: var(--accent);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.admin-coupons-assigned-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+  border-radius: var(--radius-lg);
+  margin-bottom: 0.5rem;
+}
+
+.admin-coupons-assigned-banner svg {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.admin-coupons-assigned-banner strong {
+  display: block;
+  color: #065f46;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.admin-coupons-assigned-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #047857;
+  line-height: 1.4;
+}
+
+.admin-coupons-supabase-warn {
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.admin-coupons-supabase-info {
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  border-radius: var(--radius-lg);
+  color: #1e40af;
+  font-size: 0.9rem;
+}
+
+.admin-coupons-eligible {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.admin-coupons-issued-header {
+  grid-template-columns: 1.5fr 1fr 1fr 0.8fr 0.7fr 1.5fr auto 90px;
+}
+
+.admin-coupons-issued-header + .admin-contacts-list .admin-contact-row--previous {
+  grid-template-columns: 1.5fr 1fr 1fr 0.8fr 0.7fr 1.5fr auto 90px;
+}
+
+.admin-coupons-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 .admin-contacts-list {
   list-style: none;
   padding: 0;
@@ -1496,6 +2319,29 @@ body {
 
 .admin-contact-row:last-child {
   border-bottom: none;
+}
+
+/* Coupon cancel exit animation */
+.admin-contact-row--cancelling {
+  animation: admin-coupon-cancel-out 0.4s ease forwards;
+  overflow: hidden;
+}
+
+@keyframes admin-coupon-cancel-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 120px;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-24px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: -1px;
+    border-bottom-width: 0;
+  }
 }
 
 .admin-contact-name {
@@ -1693,6 +2539,29 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+/* Admin calendar: white background */
+.admin-dashboard-page .calendar-section {
+  background: #fff;
+  border-color: #e5e7eb;
+}
+
+.admin-dashboard-page .calendar-day {
+  background: #f9fafb;
+}
+
+.admin-dashboard-page .calendar-day.other {
+  background: #f3f4f6;
+}
+
+.admin-dashboard-page .calendar-day.current.has-appts {
+  background: #eff6ff;
+  border-color: var(--accent);
+}
+
+.admin-dashboard-page .calendar-weekday {
+  color: #6b7280;
 }
 
 .calendar-header {

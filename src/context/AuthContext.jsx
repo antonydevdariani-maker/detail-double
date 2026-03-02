@@ -27,9 +27,11 @@ export function AuthProvider({ children }) {
 
   const login = (email, password) => {
     const allUsers = JSON.parse(localStorage.getItem('doublea_users') || '[]');
-    const found = allUsers.find(u => u.email === email && u.password === password);
+    const emailLower = (email || '').trim().toLowerCase();
+    const found = allUsers.find(u => (u.email || '').toLowerCase() === emailLower && u.password === password);
     if (!found) return false;
     const { password: _, ...safe } = found;
+    safe.email = emailLower;
     setUser(safe);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
     return true;
@@ -37,8 +39,9 @@ export function AuthProvider({ children }) {
 
   const signup = (email, password, name) => {
     const allUsers = JSON.parse(localStorage.getItem('doublea_users') || '[]');
-    if (allUsers.some(u => u.email === email)) return false;
-    const newUser = { id: crypto.randomUUID(), email, password, name };
+    const emailLower = (email || '').trim().toLowerCase();
+    if (allUsers.some(u => (u.email || '').toLowerCase() === emailLower)) return false;
+    const newUser = { id: crypto.randomUUID(), email: emailLower, password, name: (name || '').trim() };
     allUsers.push(newUser);
     localStorage.setItem('doublea_users', JSON.stringify(allUsers));
     const { password: _, ...safe } = newUser;

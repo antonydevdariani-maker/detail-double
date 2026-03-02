@@ -221,3 +221,216 @@ export async function removeBlockedSlotFromBackend(id) {
   }
 }
 
+// ——— Customer coupons (admin gives out; customers see in Dashboard Discounts) ———
+
+const COUPONS_STORAGE_KEY = 'doublea_customer_coupons';
+
+function getCouponsFromStorage() {
+  try {
+    const raw = localStorage.getItem(COUPONS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function setCouponsInStorage(list) {
+  try {
+    localStorage.setItem(COUPONS_STORAGE_KEY, JSON.stringify(list));
+  } catch (_) {}
+}
+
+function rowToCoupon(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userEmail: row.user_email,
+    discountType: row.discount_type,
+    discountValue: row.discount_value,
+    description: row.description,
+    serviceType: row.service_type || null,
+    minAppointments: row.min_appointments ?? null,
+    createdAt: row.created_at,
+    usedAt: row.used_at,
+  };
+}
+
+export async function fetchCouponsByEmail(email) {
+  if (!email?.trim()) return [];
+  const key = email.trim().toLowerCase();
+  const client = getSupabase();
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('customer_coupons')
+        .select('id, user_email, discount_type, discount_value, description, service_type, min_appointments, created_at, used_at')
+        .eq('user_email', key)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(rowToCoupon);
+    } catch (e) {
+      const msg = e?.message || '';
+      if (msg.includes('service_type') || msg.includes('min_appointments') || msg.includes('column')) {
+        try {
+          const { data, error } = await client
+            .from('customer_coupons')
+            .select('id, user_email, discount_type, discount_value, description, created_at, used_at')
+            .eq('user_email', key)
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          return (data || []).map((row) => rowToCoupon({ ...row, service_type: null, min_appointments: null }));
+        } catch (_) {}
+      }
+      console.warn('Supabase fetch coupons failed, using local storage:', msg);
+    }
+  }
+  const list = getCouponsFromStorage().filter((c) => (c.user_email || c.userEmail || '').toLowerCase() === key);
+  return list.map((c) => ({
+    id: c.id,
+    userEmail: c.user_email || c.userEmail,
+    discountType: c.discount_type || c.discountType,
+    discountValue: c.discount_value ?? c.discountValue,
+    description: c.description,
+    serviceType: c.service_type ?? c.serviceType ?? null,
+    minAppointments: c.min_appointments ?? c.minAppointments ?? null,
+    createdAt: c.created_at ?? c.createdAt,
+    usedAt: c.used_at ?? c.usedAt,
+  }));
+}
+
+export async function createCouponInBackend({ userEmail, discountType, discountValue, description, serviceType, minAppointments }) {
+  if (!userEmail?.trim() || !discountType || !discountValue) return null;
+  const email = userEmail.trim().toLowerCase();
+  const value = Math.abs(Number(discountValue)) || 0;
+  const desc = description?.trim() || null;
+  const validService = serviceType && ['regular', 'full', 'exterior', 'interior', 'both'].includes(serviceType) ? serviceType : null;
+  const minAppt = minAppointments != null && Number(minAppointments) > 0 ? Math.floor(Number(minAppointments)) : null;
+
+  const client = getSupabase();
+  if (client) {
+    const tryInsert = async (row) => {
+      const { data, error } = await client.from('customer_coupons').insert(row).select('id').single();
+      if (error) throw error;
+      return data?.id ?? null;
+    };
+    try {
+      const id = await tryInsert({
+        user_email: email,
+        discount_type: discountType,
+        discount_value: value,
+        description: desc,
+        service_type: validService,
+        min_appointments: minAppt,
+      });
+      if (id) return id;
+    } catch (e1) {
+      try {
+        const id = await tryInsert({
+          user_email: email,
+          discount_type: discountType,
+          discount_value: value,
+          description: desc,
+        });
+        if (id) return id;
+      } catch (e2) {
+        console.warn('Supabase create coupon failed, using local storage:', e1?.message || e2?.message);
+      }
+    }
+  }
+
+  const id = crypto.randomUUID();
+  const list = getCouponsFromStorage();
+  list.push({
+    id,
+    user_email: email,
+    discount_type: discountType,
+    discount_value: value,
+    description: desc,
+    service_type: validService,
+    min_appointments: minAppt,
+    created_at: new Date().toISOString(),
+    used_at: null,
+  });
+  setCouponsInStorage(list);
+  return id;
+}
+
+export async function deleteCouponInBackend(couponId) {
+  if (!couponId) return false;
+  const client = getSupabase();
+  if (client) {
+    try {
+      const { error } = await client.from('customer_coupons').delete().eq('id', couponId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.warn('Supabase delete coupon failed, trying local storage:', e?.message);
+    }
+  }
+  const list = getCouponsFromStorage().filter((c) => c.id !== couponId);
+  setCouponsInStorage(list);
+  return true;
+}
+
+export async function markCouponUsedInBackend(couponId) {
+  if (!couponId) return false;
+  const client = getSupabase();
+  if (client) {
+    try {
+      const { error } = await client
+        .from('customer_coupons')
+        .update({ used_at: new Date().toISOString() })
+        .eq('id', couponId);
+      if (error) throw error;
+      return true;
+    } catch (e) {
+      console.warn('Supabase mark coupon used failed, trying local storage:', e?.message);
+    }
+  }
+  const list = getCouponsFromStorage();
+  const idx = list.findIndex((c) => c.id === couponId);
+  if (idx === -1) return false;
+  list[idx] = { ...list[idx], used_at: new Date().toISOString() };
+  setCouponsInStorage(list);
+  return true;
+}
+
+export async function fetchAllCouponsFromBackend() {
+  const client = getSupabase();
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('customer_coupons')
+        .select('id, user_email, discount_type, discount_value, description, service_type, min_appointments, created_at, used_at')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(rowToCoupon);
+    } catch (e) {
+      try {
+        const { data, error } = await client
+          .from('customer_coupons')
+          .select('id, user_email, discount_type, discount_value, description, created_at, used_at')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        return (data || []).map((row) => rowToCoupon({ ...row, service_type: null, min_appointments: null }));
+      } catch (_) {
+        console.warn('Supabase fetch all coupons failed, using local storage:', e?.message);
+      }
+    }
+  }
+  const list = getCouponsFromStorage();
+  return list
+    .map((c) => ({
+      id: c.id,
+      userEmail: c.user_email || c.userEmail,
+      discountType: c.discount_type || c.discountType,
+      discountValue: c.discount_value ?? c.discountValue,
+      description: c.description,
+      serviceType: c.service_type ?? c.serviceType ?? null,
+      minAppointments: c.min_appointments ?? c.minAppointments ?? null,
+      createdAt: c.created_at ?? c.createdAt,
+      usedAt: c.used_at ?? c.usedAt,
+    }))
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+}
+

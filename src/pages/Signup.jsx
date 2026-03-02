@@ -60,6 +60,7 @@ export default function Signup() {
           <button type="submit" className="btn-primary">Create account</button>
         </form>
         <p className="auth-swap">Already have an account? <Link to="/login">Log in</Link></p>
+        <p className="auth-dashboard-hint">After signing in, view your appointments and discounts in your dashboard.</p>
       </div>
     </main>
   );

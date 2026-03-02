@@ -77,7 +77,7 @@ export default function AdminLayout() {
           <h1 className="admin-login-title">
             <Lock size={28} aria-hidden /> Admin
           </h1>
-          <p className="admin-login-sub">Sign in to view the dashboard.</p>
+          <p className="admin-login-sub">For owners only. Sign in to manage appointments, set up your calendar, and run your business.</p>
           <form onSubmit={handleLogin}>
             {loginError && <p className="auth-error">{loginError}</p>}
             <label>
@@ -109,10 +109,13 @@ export default function AdminLayout() {
 
   const navLinks = [
     { to: '/admin', end: true, label: 'Dashboard' },
-    { to: '/admin/revenue', end: false, label: 'Revenue' },
-    { to: '/admin/bookings', end: false, label: 'Bookings' },
     { to: '/admin/calendar', end: false, label: 'Calendar' },
+    { to: '/admin/add-appointment', end: false, label: 'Add appointment' },
     { to: '/admin/availability', end: false, label: 'Availability' },
+    { to: '/admin/coupons', end: false, label: 'Coupons' },
+    { to: '/admin/past-appointments', end: false, label: 'Past appointments' },
+    { to: '/admin/bookings', end: false, label: 'Bookings' },
+    { to: '/admin/revenue', end: false, label: 'Revenue' },
   ];
 
   return (
