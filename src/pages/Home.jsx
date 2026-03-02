@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -10,7 +10,7 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 import { SERVICES_FOR_DISPLAY, SERVICE_OPTIONS } from '../constants/services';
-import { fetchAppointmentsFromBackend } from '../lib/supabase';
+import { fetchAppointmentsFromBackend, fetchBlockedSlotsFromBackend } from '../lib/supabase';
 
 const WHY = [
   { title: 'We come to you', desc: 'No drop-off or wait. We detail at your home or office.', Icon: MapPin },
@@ -36,14 +36,14 @@ function isWeekday(dateStr) {
   return day >= 1 && day <= 5;
 }
 
-function roundTimeToFiveMinutes(timeStr) {
-  if (!timeStr || !timeStr.includes(':')) return timeStr;
-  const [h, m] = timeStr.split(':').map(Number);
-  const totalMins = h * 60 + m;
-  const rounded = Math.round(totalMins / 5) * 5;
-  const nh = Math.floor(rounded / 60) % 24;
-  const nm = rounded % 60;
-  return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+const BOOKING_HOURS = ['14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+
+function formatTimeLabel(timeStr) {
+  if (!timeStr) return '';
+  const [h] = timeStr.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return `${hour}:00 ${period}`;
 }
 
 export default function Home() {
@@ -61,8 +61,61 @@ export default function Home() {
   const [zip, setZip] = useState('');
   const [vehicle, setVehicle] = useState('');
   const [booked, setBooked] = useState(false);
+  const [appointmentsForDate, setAppointmentsForDate] = useState([]);
+  const [blockedForDate, setBlockedForDate] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   const selected = SERVICE_OPTIONS.find((o) => o.id === service);
+
+  // Load appointments + blocked slots when date changes so we know which times are unavailable
+  useEffect(() => {
+    if (!date || !isWeekday(date)) {
+      setAppointmentsForDate([]);
+      setBlockedForDate([]);
+      return;
+    }
+    setAvailabilityLoading(true);
+    Promise.all([fetchAppointmentsFromBackend(), fetchBlockedSlotsFromBackend()])
+      .then(([appointmentsList, blockedList]) => {
+        const onDay = appointmentsList.filter((a) => a.date === date && !a.cancelled);
+        const blockedOnDay = blockedList.filter((b) => b.date === date);
+        setAppointmentsForDate(onDay);
+        setBlockedForDate(blockedOnDay);
+      })
+      .catch(() => {
+        setAppointmentsForDate([]);
+        setBlockedForDate([]);
+      })
+      .finally(() => setAvailabilityLoading(false));
+  }, [date]);
+
+  const unavailableHours = useMemo(() => {
+    const set = new Set();
+    appointmentsForDate.forEach((a) => {
+      const h = (a.time || '').split(':')[0];
+      if (h) set.add(h);
+    });
+    blockedForDate.forEach((b) => {
+      const h = (b.time || '').split(':')[0];
+      if (h) set.add(h);
+    });
+    return set;
+  }, [appointmentsForDate, blockedForDate]);
+
+  const handleTimeSelect = (slotTime) => {
+    const hour = slotTime.split(':')[0];
+    if (unavailableHours.has(hour)) return;
+    setTime(slotTime);
+  };
+
+  // When date changes, clear time if it became unavailable
+  useEffect(() => {
+    if (!date || !time) return;
+    const hour = time.split(':')[0];
+    if (unavailableHours.has(hour)) {
+      setTime(BOOKING_HOURS.find((t) => !unavailableHours.has(t.split(':')[0])) || '');
+    }
+  }, [date, unavailableHours]);
   const price = selected?.price ?? 60;
 
   useEffect(() => {
@@ -91,20 +144,28 @@ export default function Home() {
       setBookError('Appointments are Monday–Friday only.');
       return;
     }
-    if (time < '14:00' || time > '22:00') {
-      setBookError('Available times are 2:00 PM–10:00 PM (we’re on jobs 6 AM–2 PM).');
+    if (!time || time < '14:00' || time > '22:00') {
+      setBookError('Please select an available time (we’re on jobs 6 AM–2 PM).');
       return;
     }
-    const existing = await fetchAppointmentsFromBackend();
+    const [existing, blocked] = await Promise.all([
+      fetchAppointmentsFromBackend(),
+      fetchBlockedSlotsFromBackend(),
+    ]);
     const onSameDay = existing.filter((a) => a.date === date && !a.cancelled);
     const bookedHours = new Set(onSameDay.map((a) => (a.time || '').split(':')[0]));
+    const blockedOnDay = blocked.filter((b) => b.date === date);
+    blockedOnDay.forEach((b) => {
+      const h = (b.time || '').split(':')[0];
+      if (h) bookedHours.add(h);
+    });
     const chosenHour = time.split(':')[0];
     if (bookedHours.has(chosenHour)) {
-      setBookError('This hour is already booked. Please choose another time.');
+      setBookError('This time is not available (already booked or blocked). Please choose another.');
       return;
     }
     const fullAddress = [street.trim(), city.trim(), zip.trim()].filter(Boolean).join(', ');
-    await addAppointment({
+    const result = await addAppointment({
       service: selected?.label ?? 'Exterior',
       price,
       date,
@@ -115,7 +176,11 @@ export default function Home() {
       userPhone: phone.trim(),
       userEmail: user?.email ?? '',
     });
-    setBooked(true);
+    if (result?.backendId) {
+      setBooked(true);
+    } else {
+      setBookError('Your appointment could not be saved. Please check your connection and try again, or call us to book.');
+    }
   };
 
   const minBookableStr = getMinBookableDate().toISOString().slice(0, 10);
@@ -235,18 +300,47 @@ export default function Home() {
                   min={minBookableStr}
                 />
               </label>
-              <label>
+              <label className="book-time-label">
                 Time
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(roundTimeToFiveMinutes(e.target.value))}
-                  required
-                  min="14:00"
-                  max="22:00"
-                  step="300"
-                />
+                {date && !isWeekday(date) && (
+                  <span className="book-time-hint">Pick a weekday (Mon–Fri).</span>
+                )}
               </label>
+              {!date || !isWeekday(date) ? (
+                <p className="book-time-pick-date">Pick a date above to see available times.</p>
+              ) : (
+                <div className="book-time-slots-wrap" role="group" aria-label="Choose a time">
+                  {availabilityLoading ? (
+                    <p className="book-time-loading">Checking availability…</p>
+                  ) : (
+                    BOOKING_HOURS.map((slotTime, index) => {
+                      const hour = slotTime.split(':')[0];
+                      const unavailable = unavailableHours.has(hour);
+                      const isSelected = time === slotTime;
+                      const showNotAvailable = unavailable;
+                      return (
+                        <button
+                          key={slotTime}
+                          type="button"
+                          className={`book-time-slot ${isSelected ? 'selected' : ''} ${unavailable ? 'unavailable' : ''}`}
+                          onClick={() => handleTimeSelect(slotTime)}
+                          disabled={unavailable}
+                          title={showNotAvailable ? 'This time is not available' : undefined}
+                          aria-pressed={isSelected}
+                          aria-disabled={unavailable}
+                          style={{ animationDelay: `${index * 0.04}s` }}
+                        >
+                          <span className="book-time-slot-label">{formatTimeLabel(slotTime)}</span>
+                          {showNotAvailable && (
+                            <span className="book-time-slot-unavailable">Not available</span>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+              {date && !availabilityLoading && <input type="hidden" name="time" value={time} required readOnly aria-hidden />}
               <p className="book-rules">Mon–Fri only, at least 2 days ahead. We’re on jobs 6 AM–2 PM; book 2 PM–10 PM. One appointment per hour.</p>
               <label>
                 Street address

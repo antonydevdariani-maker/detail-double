@@ -19,7 +19,7 @@ export default function Header() {
   return (
     <header className="header">
       <Link to="/" className="logo">
-        Double A Details
+        <img src="/logo.png" alt="Double A Details — Mobile Car Detailing" className="logo-img" />
       </Link>
       <button
         type="button"

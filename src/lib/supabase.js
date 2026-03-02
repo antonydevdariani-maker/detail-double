@@ -19,25 +19,38 @@ export function isSupabaseConfigured() {
 
 export async function saveAppointmentToBackend(appt) {
   const client = getSupabase();
-  if (!client) return null;
+  if (!client) {
+    console.warn('Supabase not configured (missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY)');
+    return null;
+  }
 
   const baseRow = {
-    user_name: appt.userName ?? null,
-    user_email: appt.userEmail ?? null,
-    address: appt.address,
-    date: appt.date,
-    time: appt.time,
-    service: appt.service,
-    price: appt.price,
-    vehicle: appt.vehicle || null,
+    user_name: (appt.userName ?? '').trim() || null,
+    user_email: (appt.userEmail ?? '').trim() || null,
+    user_phone: (appt.userPhone ?? appt.phone ?? '').trim() || null,
+    address: String(appt.address ?? '').trim() || null,
+    date: String(appt.date ?? '').trim(),
+    time: String(appt.time ?? '').trim(),
+    service: String(appt.service ?? '').trim(),
+    price: Math.round(Number(appt.price)) || 0,
+    vehicle: (appt.vehicle ?? '').trim() || null,
   };
+
+  if (!baseRow.date || !baseRow.time || !baseRow.service) {
+    console.warn('Supabase save failed: missing date, time, or service');
+    return null;
+  }
+
+  if (!baseRow.address) {
+    console.warn('Supabase save failed: address is required');
+    return null;
+  }
 
   try {
     const { data, error } = await client
       .from('appointments')
       .insert({
         ...baseRow,
-        user_phone: appt.userPhone ?? appt.phone ?? null,
         completed: false,
         cancelled: false,
       })
@@ -47,17 +60,26 @@ export async function saveAppointmentToBackend(appt) {
     return data?.id ?? null;
   } catch (e) {
     const msg = e?.message || '';
-    if (msg.includes('user_phone') || msg.includes('column')) {
+    if (msg.includes('column') || msg.includes('user_phone') || msg.includes('completed') || msg.includes('cancelled')) {
       try {
         const { data, error } = await client
           .from('appointments')
-          .insert({ ...baseRow, completed: false, cancelled: false })
+          .insert({
+            user_name: baseRow.user_name,
+            user_email: baseRow.user_email,
+            address: baseRow.address,
+            date: baseRow.date,
+            time: baseRow.time,
+            service: baseRow.service,
+            price: baseRow.price,
+            vehicle: baseRow.vehicle,
+          })
           .select('id')
           .single();
         if (error) throw error;
         return data?.id ?? null;
       } catch (e2) {
-        console.warn('Supabase save failed:', e2?.message);
+        console.warn('Supabase save failed (fallback):', e2?.message);
         return null;
       }
     }
@@ -146,6 +168,55 @@ export async function updateAppointmentInBackend(id, updates) {
     return true;
   } catch (e) {
     console.warn('Supabase update failed:', e?.message);
+    return false;
+  }
+}
+
+// ——— Blocked slots (admin "I'm busy" — customers can't book these times) ———
+
+export async function fetchBlockedSlotsFromBackend() {
+  const client = getSupabase();
+  if (!client) return [];
+  try {
+    const { data, error } = await client
+      .from('blocked_slots')
+      .select('id, date, time')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
+    if (error) throw error;
+    return (data || []).map((row) => ({ id: row.id, date: row.date, time: row.time }));
+  } catch (e) {
+    console.warn('Supabase fetch blocked_slots failed:', e?.message);
+    return [];
+  }
+}
+
+export async function addBlockedSlotToBackend(date, time) {
+  const client = getSupabase();
+  if (!client || !date || !time) return null;
+  try {
+    const { data, error } = await client
+      .from('blocked_slots')
+      .insert({ date, time })
+      .select('id')
+      .single();
+    if (error) throw error;
+    return data?.id ?? null;
+  } catch (e) {
+    console.warn('Supabase add blocked_slot failed:', e?.message);
+    return null;
+  }
+}
+
+export async function removeBlockedSlotFromBackend(id) {
+  const client = getSupabase();
+  if (!client || !id) return false;
+  try {
+    const { error } = await client.from('blocked_slots').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn('Supabase remove blocked_slot failed:', e?.message);
     return false;
   }
 }
