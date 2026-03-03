@@ -8,6 +8,7 @@ import {
   fetchCouponsByEmail,
   markCouponUsedInBackend,
 } from '../lib/supabase';
+import { Skeleton } from './ui/Skeleton';
 
 export function getMinBookableDate() {
   const d = new Date();
@@ -311,7 +312,11 @@ export default function BookingForm({ onSuccess, onError, showDiscountCta = true
       ) : (
         <div className="book-time-slots-wrap" role="group" aria-label="Choose a time">
           {availabilityLoading ? (
-            <p className="book-time-loading">Checking availability…</p>
+            <div className="book-time-slots-skeleton" aria-busy="true" aria-label="Loading times">
+              {BOOKING_HOURS.map((_, i) => (
+                <Skeleton key={i} className="book-time-slot-skeleton" />
+              ))}
+            </div>
           ) : (
             BOOKING_HOURS.map((slotTime, index) => {
               const hour = slotTime.split(':')[0];

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CalendarCheck } from 'lucide-react';
 import { SERVICE_OPTIONS, ADD_ON_OPTIONS } from '../constants/services';
+import { fireConfetti } from '../lib/confetti';
 
 export default function Book() {
   const { user, addAppointment } = useAuth();
@@ -33,6 +34,7 @@ export default function Book() {
       address,
       vehicle: vehicle || 'Not specified',
     });
+    fireConfetti();
     setBooked(true);
   };
 

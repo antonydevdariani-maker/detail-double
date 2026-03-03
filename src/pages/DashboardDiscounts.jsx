@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Tag, Lock, CheckCircle, Gift, RefreshCw } from 'lucide-react';
 import { fetchCouponsByEmail, fetchAppointmentsFromBackend } from '../lib/supabase';
+import { Skeleton } from '../components/ui/Skeleton';
 
 function CouponCard({ c, completedCount, showProgress }) {
   const serviceLabel = c.serviceType === 'regular' ? 'Regular package' : c.serviceType === 'full' ? 'Full detail' : 'any service';
@@ -117,7 +118,17 @@ export default function DashboardDiscounts() {
         </div>
       )}
       {!error && loading ? (
-        <p className="dashboard-loading">Loading discounts…</p>
+        <div className="dashboard-discounts-skeleton" aria-busy="true" aria-label="Loading discounts">
+          <Skeleton className="dashboard-skeleton-subtitle" />
+          <ul className="dashboard-coupons-list">
+            {[1, 2, 3, 4].map((i) => (
+              <li key={i} className="dashboard-coupon-card-skeleton">
+                <Skeleton className="dashboard-coupon-skeleton-head" />
+                <Skeleton className="dashboard-coupon-skeleton-desc" />
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : !error && coupons.length === 0 ? (
         <div className="dashboard-discounts-empty">
           <p>You don't have any coupons yet.</p>

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { CalendarCheck, XCircle } from 'lucide-react';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export default function AdminPastAppointments() {
   const { appointments, loading, handleCancel } = useOutletContext();
@@ -28,7 +29,27 @@ export default function AdminPastAppointments() {
       </p>
 
       {loading ? (
-        <p className="calendar-loading">Loading…</p>
+        <div className="admin-bookings-skeleton" aria-busy="true" aria-label="Loading past appointments">
+          <Skeleton className="admin-skeleton-title" />
+          <Skeleton className="admin-skeleton-desc" />
+          <div className="admin-contacts-card admin-contacts-card--previous">
+            <div className="admin-contacts-header">
+              <span></span><span>Name</span><span>Phone</span><span>Package</span><span>Date</span><span>Time</span><span></span><span></span>
+            </div>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="admin-contact-row admin-contact-row-skeleton">
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-actions" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <section className="admin-section admin-bookings-section">
           {pastAppointments.length > 0 ? (

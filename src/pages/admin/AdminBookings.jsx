@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Phone, CheckCircle, XCircle } from 'lucide-react';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 function getThreeDaysAgoStr() {
   const d = new Date();
@@ -42,7 +43,25 @@ export default function AdminBookings() {
       <p className="admin-section-desc">All appointments from the booking form appear here. Mark done or cancel as needed.</p>
 
       {loading ? (
-        <p className="calendar-loading">Loading…</p>
+        <div className="admin-bookings-skeleton" aria-busy="true" aria-label="Loading bookings">
+          <Skeleton className="admin-skeleton-title" />
+          <Skeleton className="admin-skeleton-desc" />
+          <div className="admin-contacts-card">
+            <div className="admin-contacts-header">
+              <span>Name</span><span>Phone</span><span>Package</span><span>Date</span><span>Time</span><span></span>
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="admin-contact-row admin-contact-row-skeleton">
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-cell" />
+                <Skeleton className="admin-contact-skeleton-actions" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <section className="admin-section admin-bookings-section">
           {sortedScheduled.length > 0 && (

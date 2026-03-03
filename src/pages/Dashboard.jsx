@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Plus } from 'lucide-react';
 import BookingForm from '../components/BookingForm';
+import { fireConfetti } from '../lib/confetti';
 
 export default function Dashboard() {
   const [bookSuccess, setBookSuccess] = useState(false);
 
   const handleBookSuccess = () => {
+    fireConfetti();
     setBookSuccess(true);
   };
 

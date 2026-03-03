@@ -5,23 +5,24 @@ import {
   MapPin,
   Sparkles,
   Clock,
-  ShieldCheck,
-  BadgeDollarSign,
   CalendarCheck,
+  Instagram,
+  PhoneCall,
 } from 'lucide-react';
 import { SERVICES_FOR_DISPLAY } from '../constants/services';
 import BookingForm from '../components/BookingForm';
+import { fireConfetti } from '../lib/confetti';
+
+const INSTAGRAM_URL = 'https://www.instagram.com/double_a_detailz?igsh=MWZja200a2h6amFnZg%3D%3D&utm_source=qr';
+const PHONE_RAW = '8139542241';
+const PHONE_PRETTY = '(813) 954-2241';
+const PHONE2_RAW = '4074843571';
+const PHONE2_PRETTY = '(407) 484-3571';
 
 const WHY_TOP = [
   { title: 'We come to you', desc: 'No drop-off or wait. We detail at your home or office.', Icon: MapPin },
   { title: 'Pro-grade results', desc: 'Quality products and techniques for a showroom finish.', Icon: Sparkles },
   { title: 'Flexible scheduling', desc: 'Book a time that works. Easy to reschedule if needed.', Icon: Clock },
-];
-
-const WHY_BELOW_BOOK = [
-  { title: 'Trusted & reliable', desc: 'Consistent service and care for your vehicle every time.', Icon: ShieldCheck },
-  { title: 'Clear pricing', desc: 'No hidden fees. You know the cost before we start.', Icon: BadgeDollarSign },
-  { title: 'Satisfaction guaranteed', desc: 'We stand behind our work. Your car, done right.', Icon: Sparkles },
 ];
 
 export default function Home() {
@@ -63,6 +64,18 @@ export default function Home() {
             </div>
           ))}
         </div>
+        <div className="why-social">
+          <a
+            className="btn-ghost why-social-link"
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Open Instagram"
+          >
+            <Instagram size={18} aria-hidden />
+            Instagram
+          </a>
+        </div>
       </section>
 
       <section id="book" className="home-book-section">
@@ -89,21 +102,11 @@ export default function Home() {
               </p>
               <BookingForm
                 showDiscountCta={false}
-                onSuccess={() => setBooked(true)}
+                onSuccess={() => {
+                  fireConfetti();
+                  setBooked(true);
+                }}
               />
-            </div>
-            <div className="why-below-book">
-              <div className="why-grid why-grid--three">
-                {WHY_BELOW_BOOK.map(({ title, desc, Icon }) => (
-                  <div key={title} className="why-item">
-                    <div className="icon-wrap">
-                      <Icon size={24} strokeWidth={1.75} aria-hidden />
-                    </div>
-                    <h3>{title}</h3>
-                    <p>{desc}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </>
         )}
@@ -126,6 +129,23 @@ export default function Home() {
         <p className="services-cta">
           <Link to="/signup">Create an account</Link> to get discounts on future bookings. Already have one? <Link to="/login">Log in</Link>.
         </p>
+      </section>
+
+      <section className="home-contact">
+        <div className="auth-card home-contact-card">
+          <h2>Contact us</h2>
+          <p className="home-contact-sub">
+            Call or text us to ask questions, get a quote, or book over the phone.
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a className="btn-primary" href={`tel:${PHONE_RAW}`} aria-label={`Call ${PHONE_PRETTY}`}>
+              <PhoneCall size={18} aria-hidden /> {PHONE_PRETTY}
+            </a>
+            <a className="btn-primary" href={`tel:${PHONE2_RAW}`} aria-label={`Call ${PHONE2_PRETTY}`}>
+              <PhoneCall size={18} aria-hidden /> {PHONE2_PRETTY}
+            </a>
+          </div>
+        </div>
       </section>
     </main>
   );

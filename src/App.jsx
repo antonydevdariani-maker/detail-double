@@ -20,6 +20,7 @@ import AdminAddAppointment from './pages/admin/AdminAddAppointment';
 import AdminAvailability from './pages/admin/AdminAvailability';
 import HoverButtonDemo from './components/ui/hover-button-demo';
 import NeonButtonDemo from './pages/NeonButtonDemo';
+import DockDemo from './pages/DockDemo';
 
 export default function App() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="/calendar" element={<Navigate to="/admin/calendar" replace />} />
             <Route path="/hover-demo" element={<HoverButtonDemo />} />
             <Route path="/neon-demo" element={<NeonButtonDemo />} />
+            <Route path="/dock-demo" element={<DockDemo />} />
           </Routes>
         </div>
       </BrowserRouter>

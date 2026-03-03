@@ -13,6 +13,7 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react';
+import { Skeleton } from '../../components/ui/Skeleton';
 import 'leaflet/dist/leaflet.css';
 
 const WINTER_PARK_CENTER = [28.6001, -81.3392];
@@ -104,7 +105,22 @@ export default function AdminCalendar() {
       <h2 className="admin-page-title">Calendar</h2>
 
       {loading ? (
-        <p className="calendar-loading">Loading appointments…</p>
+        <div className="admin-calendar-skeleton" aria-busy="true" aria-label="Loading calendar">
+          <div className="calendar-header">
+            <Skeleton className="calendar-nav-skeleton" />
+            <Skeleton className="calendar-month-skeleton" />
+            <Skeleton className="calendar-nav-skeleton" />
+          </div>
+          <div className="calendar-grid calendar-grid-skeleton">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+              <div key={d} className="calendar-weekday">{d}</div>
+            ))}
+            {Array.from({ length: 35 }, (_, i) => (
+              <Skeleton key={i} className="calendar-day-skeleton" />
+            ))}
+          </div>
+          <Skeleton className="admin-calendar-map-skeleton" />
+        </div>
       ) : (
         <>
           <section className="admin-section calendar-section">

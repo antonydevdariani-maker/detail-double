@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { DollarSign, ClipboardList, CalendarDays, Clock } from 'lucide-react';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export default function AdminDashboard() {
   const { appointments, loading } = useOutletContext();
@@ -19,6 +20,31 @@ export default function AdminDashboard() {
       .slice(0, 5),
     [appointments]
   );
+
+  if (loading) {
+    return (
+      <div className="admin-dashboard-content">
+        <h2 className="admin-page-title">Dashboard</h2>
+        <div className="admin-dashboard-skeleton" aria-busy="true" aria-label="Loading dashboard">
+          <Skeleton className="admin-revenue-skeleton" />
+          <Skeleton className="admin-skeleton-link" />
+          <Skeleton className="admin-skeleton-subtitle" />
+          <ul className="admin-dashboard-upcoming">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <li key={i} className="admin-upcoming-skeleton">
+                <Skeleton className="admin-upcoming-skeleton-line" />
+              </li>
+            ))}
+          </ul>
+          <Skeleton className="admin-skeleton-link" />
+          <div className="admin-dashboard-quick-links">
+            <Skeleton className="admin-quick-link-skeleton" />
+            <Skeleton className="admin-quick-link-skeleton" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-dashboard-content">
@@ -42,9 +68,7 @@ export default function AdminDashboard() {
         <h3 className="admin-dashboard-section-title">
           <Clock size={22} aria-hidden /> Upcoming
         </h3>
-        {loading ? (
-          <p className="calendar-loading">Loading…</p>
-        ) : scheduled.length === 0 ? (
+        {scheduled.length === 0 ? (
           <p className="admin-bookings-empty">No upcoming appointments.</p>
         ) : (
           <>

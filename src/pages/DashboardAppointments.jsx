@@ -3,18 +3,25 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CalendarDays, XCircle } from 'lucide-react';
 import { fetchAppointmentsFromBackend, updateAppointmentInBackend } from '../lib/supabase';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export default function DashboardAppointments() {
   const { user, userAppointments, cancelAppointment } = useAuth();
   const [backendAppointments, setBackendAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const userEmail = (user?.email || '').trim().toLowerCase();
 
   useEffect(() => {
-    if (!userEmail) return;
+    if (!userEmail) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     fetchAppointmentsFromBackend().then((list) => {
       const mine = list.filter((a) => (a.userEmail || '').trim().toLowerCase() === userEmail && !a.cancelled);
       setBackendAppointments(mine);
+      setLoading(false);
     });
   }, [userEmail, userAppointments.length]);
 
@@ -35,7 +42,17 @@ export default function DashboardAppointments() {
       <h2 className="dashboard-section-title">
         <CalendarDays size={22} aria-hidden /> My appointments
       </h2>
-      {myScheduled.length === 0 ? (
+      {loading ? (
+        <div className="appointment-list-skeleton" aria-busy="true" aria-label="Loading appointments">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="appointment-card-skeleton">
+              <Skeleton className="appointment-skeleton-main" />
+              <Skeleton className="appointment-skeleton-details" />
+              <Skeleton className="appointment-skeleton-btn" />
+            </div>
+          ))}
+        </div>
+      ) : myScheduled.length === 0 ? (
         <div className="empty-state">
           <p>No upcoming appointments.</p>
           <p className="dashboard-hint">

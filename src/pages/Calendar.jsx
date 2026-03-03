@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { CalendarDays, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchAppointmentsFromBackend } from '../lib/supabase';
+import { Skeleton } from '../components/ui/Skeleton';
 import { geocodeAppointments } from '../lib/geocode';
 import 'leaflet/dist/leaflet.css';
 
@@ -102,7 +103,22 @@ export default function Calendar() {
       <p className="calendar-sub">All appointments from the backend. Red dots on the map are appointment addresses.</p>
 
       {loading ? (
-        <p className="calendar-loading">Loading appointments…</p>
+        <div className="admin-calendar-skeleton" aria-busy="true" aria-label="Loading calendar">
+          <div className="calendar-header">
+            <Skeleton className="calendar-nav-skeleton" />
+            <Skeleton className="calendar-month-skeleton" />
+            <Skeleton className="calendar-nav-skeleton" />
+          </div>
+          <div className="calendar-grid calendar-grid-skeleton">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+              <div key={d} className="calendar-weekday">{d}</div>
+            ))}
+            {Array.from({ length: 35 }, (_, i) => (
+              <Skeleton key={i} className="calendar-day-skeleton" />
+            ))}
+          </div>
+          <Skeleton className="admin-calendar-map-skeleton" />
+        </div>
       ) : (
         <>
           <section className="calendar-section">

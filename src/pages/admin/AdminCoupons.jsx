@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Tag, Gift, Mail, Users, CheckCircle, XCircle } from 'lucide-react';
 import { createCouponInBackend, fetchAllCouponsFromBackend, deleteCouponInBackend, isSupabaseConfigured } from '../../lib/supabase';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 export default function AdminCoupons() {
   const { appointments } = useOutletContext();
@@ -259,7 +260,27 @@ export default function AdminCoupons() {
         <h3 className="admin-section-title">Issued coupons ({coupons.length})</h3>
         <p className="admin-section-desc">Cancel a coupon to revoke it; the customer will no longer see it in their dashboard.</p>
         {couponsLoading ? (
-          <p className="calendar-loading">Loading…</p>
+          <div className="admin-coupons-table-skeleton" aria-busy="true" aria-label="Loading coupons">
+            <Skeleton className="admin-skeleton-title" />
+            <Skeleton className="admin-skeleton-desc" />
+            <div className="admin-contacts-card admin-contacts-card--previous">
+              <div className="admin-contacts-header admin-coupons-issued-header">
+                <span>Email</span><span>Phone</span><span>Discount</span><span>Applies to</span><span>Unlocks after</span><span>Description</span><span>Created</span><span></span>
+              </div>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="admin-contact-row admin-contact-row-skeleton">
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-cell" />
+                  <Skeleton className="admin-contact-skeleton-actions" />
+                </div>
+              ))}
+            </div>
+          </div>
         ) : coupons.length === 0 ? (
           <p className="admin-bookings-empty">No coupons issued yet.</p>
         ) : (

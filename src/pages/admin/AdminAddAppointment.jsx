@@ -4,6 +4,7 @@ import { CalendarPlus, User, Phone, MapPin, Wind } from 'lucide-react';
 import { SERVICE_OPTIONS, ADD_ON_OPTIONS } from '../../constants/services';
 import { saveAppointmentToBackend, fetchAppointmentsFromBackend, fetchBlockedSlotsFromBackend } from '../../lib/supabase';
 import { getMinBookableDate, isWeekday, formatTimeLabel } from '../../components/BookingForm';
+import { fireConfetti } from '../../lib/confetti';
 
 const SLOT_HOURS = ['15:30', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
 
@@ -93,6 +94,7 @@ export default function AdminAddAppointment() {
     const id = await saveAppointmentToBackend(payload);
     setSubmitting(false);
     if (id) {
+      fireConfetti();
       await refetchAppointments();
       setSuccess(`Appointment added for ${nameTrim} on ${date} at ${formatTimeLabel(time)}. It will appear in Bookings and Calendar.`);
       setName('');
